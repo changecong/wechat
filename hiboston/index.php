@@ -20,6 +20,13 @@ class mbtaCallback
         if (!empty($postStr)){
                 
             $postObj = simplexml_load_string($postStr, 'SimpleXMLElement', LIBXML_NOCDATA);
+            $MsgType = $postObj->MsgType;
+            if ($MsgType == "location") {
+                $Location_X = $postObj->Location_X;
+                $Location_Y = $postObj->Location_Y;  
+                $stopNameArray = $this->getStation($Location_X, $Location_Y);
+                $stopNumber = count($stopNameArray);
+            }
             $fromUsername = $postObj->FromUserName;
             $toUsername = $postObj->ToUserName;
             $keyword = trim($postObj->Content);
@@ -44,8 +51,17 @@ class mbtaCallback
                 $msgType = "text";
                 $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $contentStr);
                 echo $resultStr;
-            }else{
-                echo "Input something...";
+            }else if ($MsgType == "location") {
+                $contentStr = "There is(are) ".$stopNumber." station(s) nearby (less than 1 mile).\n";
+                foreach ($stopNameArray as $stopName) {
+                    $contentStr .= "* ".$stopName."\n";
+                }
+
+                $msgType = "text";
+                $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $contentStr);
+                echo $resultStr;                
+            }else {
+                echo "input something";
             }
 
         }else {
@@ -65,6 +81,30 @@ class mbtaCallback
         $Line = $TripList->Line;
 
         return $Line;
+    }
+
+    function getStation($location_x, $location_y) {
+        $url = "http://mbta-api.heroku.com/mapper/find_closest_stations.json?lat=".$location_x."&lon=".$location_y;
+        $file = file_get_contents($url);
+        $obj = json_decode($file);
+
+        // decode
+        $stopNames = array();
+        foreach($obj as $unit) {
+            $station = $unit->station;
+            if($station->distance < 1.0) {
+                $stopNames[] = $station->stop_name;
+            }
+        }
+
+        /* $stopNames[] = "aaaa"; */
+        /* $stopNames[] = "bbbb"; */
+        /* $stopNames[] = "eeee"; */
+        
+        // unique
+        $stopNamesUnique = array_unique($stopNames);
+
+        return $stopNamesUnique;
     }
 }  // mbta callback end
 
