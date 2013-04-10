@@ -9,6 +9,8 @@ define("TOKEN", "hiboston");
 $mbtaObj = new mbtaCallback();
 $mbtaObj->responseMsg();
 
+
+
 // mbta callback
 class mbtaCallback
 {
@@ -69,7 +71,7 @@ class mbtaCallback
                 }
 
                 $msgType = "text";
-                $resultStr = sprintf($textTpl, $toUsername, $fromUsername, $time, $msgType, $contentStr);
+                $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $contentStr);
                 echo $resultStr;
             
             } else if ($MsgType == "location") {
@@ -78,17 +80,23 @@ class mbtaCallback
                 $Location_Y = $postObj->Location_Y;  
                 $stopArray = $this->getStation($Location_X, $Location_Y);
                 $stopNumber = count($stopArray);
+
+                if ($stopNumber == 1) {
+                    $contentStr = "Sorry, there is no subway station around...";
+                    $msgType = "text";
+                    $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $contentStr);
+                    echo $resultStr;  
+                } else {
 			    
-			    
-                $headerStr = sprintf($textHeaderTpl, $toUsername, $fromUsername, $time, $stopNumber);		
-                foreach($stopArray as $key=>$value) {
-		    $contentStr .= sprintf($textContentTpl, $value["title"], $value["line"], $value["pic"], $value["url"]);
-		}			     
-		$footerStr = sprintf($textFooterTpl);
+                    $headerStr = sprintf($textHeaderTpl, $fromUsername, $toUsername, $time, $stopNumber);		
+                    foreach($stopArray as $key=>$value) {
+                        $contentStr .= sprintf($textContentTpl, $value["title"], $value["line"], $value["pic"], $value["url"]);
+                    }			     
+                    $footerStr = sprintf($textFooterTpl);
                 
-                echo $resultStr = $headerStr,$contentStr,$footerStr;                
-            
-     		}else {
+                    echo $resultStr = $headerStr,$contentStr,$footerStr;                
+                }
+            }else {
                 echo "input something";
             }
 
@@ -102,6 +110,9 @@ class mbtaCallback
     function getSubway($color) {
         $url = "http://developer.mbta.com/lib/rthr/".$color.".json";
         $file = file_get_contents($url);
+        if(empty($file)) {
+            return "";
+        }
         $obj = json_decode($file);
 
         // decode
@@ -117,28 +128,31 @@ class mbtaCallback
         $obj = json_decode($file);
 
         // decode
-		$pair = array();
-		$pair[] = array("pic"=>"/img/mbta.jpg");
+        $pair = array();
+        $pair[] = array("title"=>"MBTA subway stops nearby", "pic"=>"http://changecong.com/wechat/hiboston/img/mbta.jpg");
+        $stops = array();
         foreach($obj as $unit) {
             $station = $unit->station;
             $color = $station->line;
             $stopName = $station->stop_name;
-            if($station->distance < 0.7) {
-                $pair[] = array("title"=>$stopName, "line"=>$color, "pic"=>"/img/".$color.".jpg");
+            if($station->distance < 0.7 && !in_array($stopName, $stops)) {
+                $pair[] = array("title"=>$stopName, "line"=>$color, "pic"=>"http://changecong.com/wechat/hiboston/img/".$color.".jpg");
+                $stops[] = $stopName;
             }
       	}
     
         // unique
-        $pairUnique = array_unique($pair);
+        // $pairUnique = array_unique($pair);
 
-        return $pairUnique;
+        // return $pairUnique;
+        return $pair;
     }
 
-	// help
-	function getHelp() {
-		$help = "Sorry, I don't know what you want...\n1. For nearby subway stops, share your current location with me.\n2. For Boston weather, type 'weather'";
-		return $help;
-	}
+    // help
+    function getHelp() {
+        $help = "1. For nearby subway stops, share your current location with me.\n2. Other info is coming soon...";
+        return $help;
+    }
 }  // mbta callback end
 
 
