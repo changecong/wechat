@@ -41,8 +41,7 @@ class mbtaCallback
             $textContentTpl = "<item>
                                <Title><![CDATA[%s]]></Title> 
                                <Description><![CDATA[%s]]></Description>
-                               <PicUrl><![CDATA[%s]]></PicUrl>        
-                               <Url><![CDATA[%s]]></Url>                       
+                               <PicUrl><![CDATA[%s]]></PicUrl>                               
                                </item>";
             $textFooterTpl = "</Articles>
                               <FuncFlag>1</FuncFlag>
@@ -91,7 +90,7 @@ class mbtaCallback
 			    
                     $headerStr = sprintf($textHeaderTpl, $fromUsername, $toUsername, $time, $stopNumber);		
                     foreach($stopArray as $key=>$value) {
-                        $contentStr .= sprintf($textContentTpl, $value["title"], $value["line"], $value["pic"], $value["url"]);
+                        $contentStr .= sprintf($textContentTpl, $value["title"], $value["line"], $value["pic"]);
                     }			     
                     $footerStr = sprintf($textFooterTpl);
                 
