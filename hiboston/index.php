@@ -132,6 +132,7 @@ class mbtaCallback
         $pair = array();
         $pair[] = array("title"=>"MBTA subway stops nearby", "pic"=>"http://changecong.com/wechat/hiboston/img/mbta.jpg");
         $stops = array();
+        $lines = array();
         foreach($obj as $unit) {
             $station = $unit->station;
             $color = $station->line;
@@ -140,6 +141,10 @@ class mbtaCallback
                 $pair[] = array("title"=>$stopName, "line"=>$color, "pic"=>"http://changecong.com/wechat/hiboston/img/".$color.".jpg");
                 $stops[] = $stopName;
             }
+
+            /*
+             * @todo: handle when there is a transfer station. 
+             */
       	}
     
         // unique
