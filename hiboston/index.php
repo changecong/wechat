@@ -41,7 +41,8 @@ class mbtaCallback
             $textContentTpl = "<item>
                                <Title><![CDATA[%s]]></Title> 
                                <Description><![CDATA[%s]]></Description>
-                               <PicUrl><![CDATA[%s]]></PicUrl>                               
+                               <PicUrl><![CDATA[%s]]></PicUrl>        
+                               <Url><![CDATA[%s]]></Url>                       
                                </item>";
             $textFooterTpl = "</Articles>
                               <FuncFlag>1</FuncFlag>
@@ -90,7 +91,7 @@ class mbtaCallback
 			    
                     $headerStr = sprintf($textHeaderTpl, $fromUsername, $toUsername, $time, $stopNumber);		
                     foreach($stopArray as $key=>$value) {
-                        $contentStr .= sprintf($textContentTpl, $value["title"], $value["line"], $value["pic"]);
+                        $contentStr .= sprintf($textContentTpl, $value["title"], $value["line"], $value["pic"], $value["url"]);
                     }			     
                     $footerStr = sprintf($textFooterTpl);
                 
@@ -127,6 +128,7 @@ class mbtaCallback
         $file = file_get_contents($url);
         $obj = json_decode($file);
 
+        $mbtaurl = "http://mobile.usablenet.com/mt/www.mbta.com/?un_jtt_v_schedule_choice=subway";
         // decode
         $pair = array();
         $pair[] = array("title"=>"MBTA subway stops nearby", "pic"=>"http://changecong.com/wechat/hiboston/img/mbta.jpg");
@@ -137,7 +139,7 @@ class mbtaCallback
             $color = $station->line;
             $stopName = $station->stop_name;
             if($station->distance < 0.7 && !in_array($stopName, $stops)) {
-                $pair[] = array("title"=>$stopName, "line"=>$color, "pic"=>"http://changecong.com/wechat/hiboston/img/".$color.".jpg");
+                $pair[] = array("title"=>$stopName, "line"=>$color, "pic"=>"http://changecong.com/wechat/hiboston/img/".$color.".jpg", "url"=>$mbtaurl);
                 $stops[] = $stopName;
             }
 
