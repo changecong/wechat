@@ -72,6 +72,7 @@ class mbtaCallback
 
                 $msgType = "text";
                 $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $contentStr);
+              
                 echo $resultStr;
             
             } else if ($MsgType == "location") {
