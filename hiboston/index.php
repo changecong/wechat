@@ -6,13 +6,13 @@
 //define your token
 define("TOKEN", "hiboston");
 
-$mbtaObj = new mbtaCallback();
-$mbtaObj->responseMsg();
+$Obj = new Callback();
+$Obj->responseMsg();
 
 
 
 // mbta callback
-class mbtaCallback
+class Callback
 {
     public function responseMsg() {
         //get post data, May be due to the different environments
@@ -29,51 +29,25 @@ class mbtaCallback
             $keyword = trim($postObj->Content);
             $time = time();
 
-            // rich media
-            // header
-            $textHeaderTpl = "<xml>
-                              <ToUserName><![CDATA[%s]]></ToUserName>
-                              <FromUserName><![CDATA[%s]]></FromUserName>
-                              <CreateTime>%s</CreateTime>
-                              <MsgType><![CDATA[news]]></MsgType>
-                              <ArticleCount>%d</ArticleCount>
-                              <Articles>";
-            $textContentTpl = "<item>
-                               <Title><![CDATA[%s]]></Title> 
-                               <Description><![CDATA[%s]]></Description>
-                               <PicUrl><![CDATA[%s]]></PicUrl>        
-                               <Url><![CDATA[%s]]></Url>                       
-                               </item>";
-            $textFooterTpl = "</Articles>
-                              <FuncFlag>1</FuncFlag>
-                              </xml> ";
-            // text
-            $textTpl = "<xml>
-                            <ToUserName><![CDATA[%s]]></ToUserName>
-                            <FromUserName><![CDATA[%s]]></FromUserName>
-                            <CreateTime>%s</CreateTime>
-                            <MsgType><![CDATA[%s]]></MsgType>
-                            <Content><![CDATA[%s]]></Content>
-                            <FuncFlag>0</FuncFlag>
-                            </xml>";   
+         
 
             if(!empty( $keyword ))
             {
 	
                 if ($keyword == "Hello2BizUser") { 
                     $contentStr = "Hi Bostonian!";
-                }else {
-                    $contentStr = $this->getSubway($keyword);
-                }
-                
-                if ($contentStr == "") {
+                    setPlantTextResponse($fromUsername, $toUsername, $time, $constentStr);
+                } else if (strtolower($keyword) == "weather") {
+                    $weather = new weatherCondition();
+                    $content = $weather->getWeather();
+                    
+                    setRichMediaResponse($fromUsername, $toUsername, $time, $content);
+                    
+                } else {
 		    $contentStr = $this->getHelp();
+                    setPlantTextResponse($fromUsername, $toUsername, $time, $constentStr);
                 }
-
-                $msgType = "text";
-                $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $contentStr);
               
-                echo $resultStr;
             
             } else if ($MsgType == "location") {
 
@@ -88,14 +62,8 @@ class mbtaCallback
                     $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $contentStr);
                     echo $resultStr;  
                 } else {
-			    
-                    $headerStr = sprintf($textHeaderTpl, $fromUsername, $toUsername, $time, $stopNumber);		
-                    foreach($stopArray as $key=>$value) {
-                        $contentStr .= sprintf($textContentTpl, $value["title"], $value["line"], $value["pic"], $value["url"]);
-                    }			     
-                    $footerStr = sprintf($textFooterTpl);
-                
-                    echo $resultStr = $headerStr,$contentStr,$footerStr;                
+                    
+                    setRichMediaResponse($fromUsername, $toUsername, $time, $stopArray);
                 }
             }else {
                 echo "input something";
@@ -105,22 +73,6 @@ class mbtaCallback
             echo "";
             exit;
         }
-    }
-
-    // get mbta
-    function getSubway($color) {
-        $url = "http://developer.mbta.com/lib/rthr/".$color.".json";
-        $file = file_get_contents($url);
-        if(empty($file)) {
-            return "";
-        }
-        $obj = json_decode($file);
-
-        // decode
-        $TripList = $obj->TripList;
-        $Line = $TripList->Line;
-
-        return $Line;
     }
 
     function getStation($location_x, $location_y) {
@@ -139,7 +91,7 @@ class mbtaCallback
             $color = $station->line;
             $stopName = $station->stop_name;
             if($station->distance < 0.7 && !in_array($stopName, $stops)) {
-                $pair[] = array("title"=>$stopName, "line"=>$color, "pic"=>"http://changecong.com/wechat/hiboston/img/".$color.".jpg", "url"=>$mbtaurl);
+                $pair[] = array("title"=>$stopName, "desc"=>$color, "pic"=>"http://changecong.com/wechat/hiboston/img/".$color.".jpg", "url"=>$mbtaurl);
                 $stops[] = $stopName;
             }
 
@@ -162,79 +114,119 @@ class mbtaCallback
     }
 }  // mbta callback end
 
+// a class for weather condition
+class weatherCondition  // only return the weather condition for Boston
+{
+    public function getWeather() {
+        $WOEID = "2367105"; // the code of Boston
+        $array = $this->decodeYahooAPI($WOEID);
+        return $array;
+    }
 
-/* unuseful
-   class wechatCallbackapiTest
-   {
-   public function valid()
-   {
-   $echoStr = $_GET["echostr"];
+    private function decodeYahooAPI($WOEID) {
+        $url = "http://weather.yahooapis.com/forecastrss?w=".$WOEID;
+        
+        // read xml
+        $weather_feed = file_get_contents($url);
+        if(!$weather_feed) {
+            return "Weather info is unavilable now...";
+        }
 
-   //valid signature , option
-   if($this->checkSignature()){
-   echo $echoStr;
-   exit;
-   }
-   }
+        $weather = simplexml_load_string($weather_feed);
 
-   public function responseMsg()
-   {
-   //get post data, May be due to the different environments
-   $postStr = $GLOBALS["HTTP_RAW_POST_DATA"];
+        $channel_yweather = $weather->channel->children("http://xml.weather.yahoo.com/ns/rss/1.0");
+        
+        // channel
+        foreach($channel_yweather as $x => $channel_item) {
+            foreach($channel_item->attributes() as $k => $attr) {
+		$yw_channel[$x][$k] = $attr;
+            }
+        }
 
-   //extract post data
-   if (!empty($postStr)){
+
+        // item
+        $item_yweather = $weather->channel->item->children("http://xml.weather.yahoo.com/ns/rss/1.0");
+
+        $days = array();
+        foreach($item_yweather as $x => $yw_item) {
+            foreach($yw_item->attributes() as $k => $attr) {
+		if($k == 'day') {
+                    $day = $attr;
+                }
+		if($x == 'forecast') { 
+                    $yw_forecast[$x][$day . ''][$k] = $attr;	
+                } else { 
+                    $yw_forecast[$x][$k] = $attr; 
+                }
+                $days[] = $day;
+            }
+        }
+        
+        $location = $yw_channel["location"];
+        $codition = $yw_forecast["codition"];
+        $forecast = $yw_forecast["forecast"];
+        $today = $forecast[$days[0]];
+        $tomorrow = $forecast[$days[1]];
+
+        $array = array(
+            array("title"=>$location["city"][0]." ".$location["region"][0]." ".$location["country"][0], "pic"=>""),
+            array("title"=>"Current condition:\n".$codition["text"][0]),
+            array("title"=>"Today:\n".$today["text"][0]." high: ".$today["high"][0]." low: ".$today["low"][0]),
+            array("title"=>"Tomorrow:\n".$tomorrow["text"][0]." high: ".$tomorrow["high"][0]." low: ".$tomorrow["low"][0])
+            );
+
+        return $array;
+
+    }
+
+}
+
+// utilities
+function setRichMediaResponse($fromUsername, $toUsername, $createTime, $constent)
+{
+    $textHeaderTpl = "<xml>
+                              <ToUserName><![CDATA[%s]]></ToUserName>
+                              <FromUserName><![CDATA[%s]]></FromUserName>
+                              <CreateTime>%s</CreateTime>
+                              <MsgType><![CDATA[news]]></MsgType>
+                              <ArticleCount>%d</ArticleCount>
+                              <Articles>";
+    $textContentTpl = "<item>
+                               <Title><![CDATA[%s]]></Title> 
+                               <Description><![CDATA[%s]]></Description>
+                               <PicUrl><![CDATA[%s]]></PicUrl>        
+                               <Url><![CDATA[%s]]></Url>                       
+                               </item>";
+    $textFooterTpl = "</Articles>
+                              <FuncFlag>1</FuncFlag>
+                              </xml> ";
+
+    $headerStr = sprintf($textHeaderTpl, $fromUsername, $toUsername, $createTime, count($constent));
+		
+    foreach($constent as $key=>$value) {
+        $contentStr .= sprintf($textContentTpl, $value["title"], $value["desc"], $value["pic"], $value["url"]);
+    }			     
+
+    $footerStr = sprintf($textFooterTpl);
                 
-   $postObj = simplexml_load_string($postStr, 'SimpleXMLElement', LIBXML_NOCDATA);
-   $fromUsername = $postObj->FromUserName;
-   $toUsername = $postObj->ToUserName;
-   $keyword = trim($postObj->Content);
-   $time = time();
-   $textTpl = "<xml>
-   <ToUserName><![CDATA[%s]]></ToUserName>
-   <FromUserName><![CDATA[%s]]></FromUserName>
-   <CreateTime>%s</CreateTime>
-   <MsgType><![CDATA[%s]]></MsgType>
-   <Content><![CDATA[%s]]></Content>
-   <FuncFlag>0</FuncFlag>
-   </xml>";             
-   if(!empty( $keyword ))
-   {
-   $msgType = "text";
-   // $contentStr = "You are a colorfull piggy!";
-   $contentStr = getSubway($keyword);
-   // $contentStr = $keyword;
-   $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $contentStr);
-   echo $resultStr;
-   }else{
-   echo "Input something...";
-   }
+    echo $resultStr = $headerStr,$contentStr,$footerStr;                
+}
 
-   }else {
-   echo "";
-   exit;
-   }
-   }
-		
-   private function checkSignature()
-   {
-   $signature = $_GET["signature"];
-   $timestamp = $_GET["timestamp"];
-   $nonce = $_GET["nonce"];	
-        		
-   $token = TOKEN;
-   $tmpArr = array($token, $timestamp, $nonce);
-   sort($tmpArr);
-   $tmpStr = implode( $tmpArr );
-   $tmpStr = sha1( $tmpStr );
-		
-   if( $tmpStr == $signature ){
-   return true;
-   }else{
-   return false;
-   }
-   }
-   } 
-*/
+function setPlantTextResponse($fromUsername, $toUsername, $createTime, $constent)
+{
+    // text
+    $textTpl = "<xml>
+                            <ToUserName><![CDATA[%s]]></ToUserName>
+                            <FromUserName><![CDATA[%s]]></FromUserName>
+                            <CreateTime>%s</CreateTime>
+                            <MsgType><![CDATA[text]]></MsgType>
+                            <Content><![CDATA[%s]]></Content>
+                            <FuncFlag>0</FuncFlag>
+                            </xml>";   
+
+    $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $createTime, $contentStr);
+    
+    echo $resultStr; 
+}
 
 ?>
