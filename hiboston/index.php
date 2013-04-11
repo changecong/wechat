@@ -45,6 +45,7 @@ class Callback
                     
                 } else {
 		    $contentStr = $this->getHelp();
+                    die("shit");
                     setPlantTextResponse($fromUsername, $toUsername, $time, $constentStr);
                 }
               
@@ -100,10 +101,6 @@ class Callback
              */
       	}
     
-        // unique
-        // $pairUnique = array_unique($pair);
-
-        // return $pairUnique;
         return $pair;
     }
 
@@ -147,7 +144,6 @@ class weatherCondition  // only return the weather condition for Boston
         // item
         $item_yweather = $weather->channel->item->children("http://xml.weather.yahoo.com/ns/rss/1.0");
 
-        $days = array();
         foreach($item_yweather as $x => $yw_item) {
             foreach($yw_item->attributes() as $k => $attr) {
 		if($k == 'day') {
@@ -158,25 +154,33 @@ class weatherCondition  // only return the weather condition for Boston
                 } else { 
                     $yw_forecast[$x][$k] = $attr; 
                 }
-                $days[] = $day;
             }
         }
         
         $location = $yw_channel["location"];
-        $codition = $yw_forecast["codition"];
+        $condition = $yw_forecast["condition"];
         $forecast = $yw_forecast["forecast"];
-        $today = $forecast[$days[0]];
-        $tomorrow = $forecast[$days[1]];
+        $today = $forecast[date("D")];
+        $tomorrow = $forecast[date("D",mktime()+86400)];
+        $code = $condition["code"][0];
+
+        $conditionImg = $this->getFromConditionCode($code);
+        $picUrl = "http://changecong.com/wechat/hiboston/img/weather/".$conditionImg.".jpg";
 
         $array = array(
-            array("title"=>$location["city"][0]." ".$location["region"][0]." ".$location["country"][0], "pic"=>""),
-            array("title"=>"Current condition:\n".$codition["text"][0]),
-            array("title"=>"Today:\n".$today["text"][0]." high: ".$today["high"][0]." low: ".$today["low"][0]),
-            array("title"=>"Tomorrow:\n".$tomorrow["text"][0]." high: ".$tomorrow["high"][0]." low: ".$tomorrow["low"][0])
+            array("title"=>$location["city"][0].", ".$location["region"][0].", ".$location["country"][0], "pic"=>$picUrl, "url"=>$picUrl),
+            array("title"=>"Current condition:\n".$condition["text"][0]." ".$condition["temp"][0]."F"),
+            array("title"=>"Today: ".$today["text"][0]."\nhigh: ".$today["high"][0]."F low: ".$today["low"][0]."F"),
+            array("title"=>"Tomorrow: ".$tomorrow["text"][0]."\nhigh: ".$tomorrow["high"][0]."F low: ".$tomorrow["low"][0]."F")
             );
 
         return $array;
 
+    }
+
+    private function getFromConditionCode($code) {
+        include "weatherConditionTable.php";
+        return $weatherConditionTable[$code];
     }
 
 }
