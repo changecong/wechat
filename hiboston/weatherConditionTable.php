@@ -28,16 +28,17 @@ $weatherConditionTable = array(
 /* 23	blustery */
 /* 24	windy */
 /* 25	cold */
-/* 26	cloudy */
-    "27"=>"mostly_cloudy_night",
-    "28"=>"mostly_cloudy_day",
+    "26"=>"cloudy",
+    "27"=>"cloudy",
+    "28"=>"cloudy",
+    "29"=>"partly_cloudy",
+    "30"=>"partly_cloudy",
     );
 
     /*
 
     "28"=>"mostly_cloudy_day",
-29	partly cloudy (night)
-30	partly cloudy (day)
+
 31	clear (night)
 32	sunny
 33	fair (night)
