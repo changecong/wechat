@@ -14,75 +14,106 @@ $Obj->responseMsg();
 // mbta callback
 class Callback
 {
-    public function responseMsg() {
-        //get post data, May be due to the different environments
-        $postStr = $GLOBALS["HTTP_RAW_POST_DATA"];
+  public function responseMsg() {
+    //get post data, May be due to the different environments
+    $postStr = $GLOBALS["HTTP_RAW_POST_DATA"];
 
-      	//extract post data
-        if (!empty($postStr)){
+    //extract post data
+    if (!empty($postStr)){
                 
-            $postObj = simplexml_load_string($postStr, 'SimpleXMLElement', LIBXML_NOCDATA);
-            $MsgType = $postObj->MsgType;
+      $postObj = simplexml_load_string($postStr, 'SimpleXMLElement', LIBXML_NOCDATA);
+      $MsgType = $postObj->MsgType;
 
-            $fromUsername = $postObj->FromUserName;
-            $toUsername = $postObj->ToUserName;
-            $keyword = trim($postObj->Content);
-            $time = time();
+      $fromUsername = $postObj->FromUserName;
+      $toUsername = $postObj->ToUserName;
+      $keyword = trim($postObj->Content);
+      $time = time();
 
          
 
-            if(!empty( $keyword ))
-            {
-	
-                if ($keyword == "Hello2BizUser") { 
-                    $contentStr = "Hi Bostonian!";
-                    setPlantTextResponse($fromUsername, $toUsername, $time, $contentStr);
-                } else if (strtolower($keyword) == "weather") {
-                    $weather = new weatherCondition();
-                    $contentStr = $weather->getWeather();
-                    
-                    setRichMediaResponse($fromUsername, $toUsername, $time, $contentStr);
-                    
-                } else {
-		    $contentStr = $this->getHelp();
-                    setPlantTextResponse($fromUsername, $toUsername, $time, $contentStr);
-                }
+      if(!empty( $keyword )) {
+        if ($keyword == "Hello2BizUser") { // new user 
+          $contentStr = "Hi Bostonian!";
+          setPlantTextResponse($fromUsername, $toUsername, $time, $contentStr);
+        } else {
+
+          // pre process
+          // split
+          $keywords = splitStringToTwo($keyword);
               
-            
-            } else if ($MsgType == "location") {
+          if (count($keywords) > 2) {
+            $contentStr = "Wrong Format!\n[category]: [keywords]\nor\n[category]\ni.e.weather\nor\nweather: Boston";
+            setPlantTextResponse($fromUsername, $toUsername, $time, $contentStr);
+            exit;
+          } else if (count($keywords) == 1) { // [category]
 
-                $Location_X = $postObj->Location_X;
-                $Location_Y = $postObj->Location_Y;
+            // remove spaces
+            $param = trim($keywords[0]);
 
-                $stops = new mbtaSubwayStop;
-
-                $stopArray = $stops->getStops($Location_X, $Location_Y);
-                $stopNumber = count($stopArray);
-
-                if ($stopNumber == 1) {
-                    $contentStr = "Sorry, there is no subway station around...";
-                    setPlantTextResponse($fromUsername, $toUsername, $time, $contentStr);
-                } else {
+            // weather
+            if (strtolower($param) == "weather") {
+              $weather = new weatherCondition();
+              $contentStr = $weather->getWeather();
                     
-                    setRichMediaResponse($fromUsername, $toUsername, $time, $stopArray);
-                }
-            }else {
-                echo "input something";
+              setRichMediaResponse($fromUsername, $toUsername, $time, $contentStr);
+                    
+            } else {
+              $contentStr = $this->getHelp();
+              setPlantTextResponse($fromUsername, $toUsername, $time, $contentStr);
             }
 
-        }else {
-            echo "";
-            exit;
+          } else if (count($keywords) == 2) {  // [category]: [keyword]
+            // remove spaces
+            $param = array();
+            $param[] = trim($keywords[0], " ");
+            $param[] = trim($keywords[1], " ");
+            
+            // weather
+            if (strtolower($param[0]) == "weather") {
+              $weather = new weatherCondition();
+              $contentStr = $weather->getWeather($param[1]);
+                    
+              setRichMediaResponse($fromUsername, $toUsername, $time, $contentStr);
+            } else {
+              $contentStr = $this->getHelp();
+              setPlantTextResponse($fromUsername, $toUsername, $time, $contentStr);
+            }                
+          }                 
+        } 
+      } else if ($MsgType == "location") {
+
+        $Location_X = $postObj->Location_X;
+        $Location_Y = $postObj->Location_Y;
+
+        $stops = new mbtaSubwayStop;
+
+        $stopArray = $stops->getStops($Location_X, $Location_Y);
+        $stopNumber = count($stopArray);
+
+        if ($stopNumber == 1) {
+          $contentStr = "Sorry, there is no subway station around...";
+          setPlantTextResponse($fromUsername, $toUsername, $time, $contentStr);
+        } else {
+                    
+          setRichMediaResponse($fromUsername, $toUsername, $time, $stopArray);
         }
+      }else {
+        echo "input something";
+      }
+
+    }else {
+      echo "";
+      exit;
     }
+  }
 
 
 
-    // help
-    private function getHelp() {
-        $help = "1. For nearby subway stops, share your current location with me.\n2. Sent 'weather' to get Boston weather condition.\n3. Other info is coming soon...";
-        return $help;
-    }
+  // help
+  private function getHelp() {
+    $help = "1. For nearby subway stops, share your current location with me.\n2. Sent 'weather' to get Boston weather condition.\n3. Other info is coming soon...";
+    return $help;
+  }
 }  // callback end
 
 // mbta
@@ -125,8 +156,13 @@ class mbtaSubwayStop
 // a class for weather condition
 class weatherCondition  // only return the weather condition for Boston
 {
-    public function getWeather() {
+    public function getWeather($location) {
+      if(empty($location)) {
         $WOEID = "2367105"; // the code of Boston
+      } else {
+        $geoObj = new geoUtilities();
+        $WOEID = $geoObj->getWoeidFromName($location);
+      }
         $array = $this->decodeYahooAPI($WOEID);
         return $array;
     }
@@ -154,25 +190,26 @@ class weatherCondition  // only return the weather condition for Boston
 
         // item
         $item_yweather = $weather->channel->item->children("http://xml.weather.yahoo.com/ns/rss/1.0");
-
+        $i=0; 
         foreach($item_yweather as $x => $yw_item) {
-            foreach($yw_item->attributes() as $k => $attr) {
-		if($k == 'day') {
-                    $day = $attr;
-                }
-		if($x == 'forecast') { 
-                    $yw_forecast[$x][$day . ''][$k] = $attr;	
-                } else { 
-                    $yw_forecast[$x][$k] = $attr; 
-                }
+          foreach($yw_item->attributes() as $k => $attr) {
+            if($k == 'day') {
+              $day = $attr;
             }
+            if($x == 'forecast') { 
+              $yw_forecast[$x][$i][$k] = $attr;	
+            } else { 
+              $yw_forecast[$x][$k] = $attr; 
+            }
+          }
+          $i += 1;
         }
         
         $location = $yw_channel["location"];
         $condition = $yw_forecast["condition"];
         $forecast = $yw_forecast["forecast"];
-        $today = $forecast[date("D")];
-        $tomorrow = $forecast[date("D",mktime()+86400)];
+        $today = $forecast[1];
+        $tomorrow = $forecast[2];
         $code = sprintf("%d", $condition["code"][0]);
 
         $conditionImg = $this->getFromConditionCode($code);
@@ -194,6 +231,34 @@ class weatherCondition  // only return the weather condition for Boston
         return $weatherConditionTable[$code];
     }
 
+}
+
+// class
+class geoUtilities
+{
+  public function getWoeidFromName($location) {
+
+    $woeid = $this->name2Woeid($location);
+    return $woeid;
+
+  } 
+  
+  private function name2Woeid($location) {
+  
+    // yahoo app id
+    $appid = "GrUp8FnV34H7F4v98cRFVehsrsbfj0oV1Rf0dj1W804167.0oigtAH1cLtnqkUPYiV7incDXUoTbUHfAWsuzhJy5Do4_J9Q-";
+    $url = "http://where.yahooapis.com/v1/places.q('".rawurlencode($location)."')?appid=[".$appid."]";
+
+    // decode xml
+    $geo_feed = file_get_contents($url);
+
+    $geo = simplexml_load_string($geo_feed);
+
+    $woeid = $geo->place->woeid;
+
+    return $woeid;
+    
+  }
 }
 
 // utilities
@@ -242,6 +307,13 @@ function setPlantTextResponse($fromUsername, $toUsername, $createTime, $content)
     $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $createTime, $content);
     
     echo $resultStr; 
+}
+
+// "I am good" -> "I" "am good"
+function splitStringToTwo($str)
+{
+  $strs = explode(":", $str);
+  return $strs;
 }
 
 ?>
