@@ -36,32 +36,32 @@ class Callback
 	
                 if ($keyword == "Hello2BizUser") { 
                     $contentStr = "Hi Bostonian!";
-                    setPlantTextResponse($fromUsername, $toUsername, $time, $constentStr);
+                    setPlantTextResponse($fromUsername, $toUsername, $time, $contentStr);
                 } else if (strtolower($keyword) == "weather") {
                     $weather = new weatherCondition();
-                    $content = $weather->getWeather();
+                    $contentStr = $weather->getWeather();
                     
-                    setRichMediaResponse($fromUsername, $toUsername, $time, $content);
+                    setRichMediaResponse($fromUsername, $toUsername, $time, $contentStr);
                     
                 } else {
 		    $contentStr = $this->getHelp();
-                    die("shit");
-                    setPlantTextResponse($fromUsername, $toUsername, $time, $constentStr);
+                    setPlantTextResponse($fromUsername, $toUsername, $time, $contentStr);
                 }
               
             
             } else if ($MsgType == "location") {
 
                 $Location_X = $postObj->Location_X;
-                $Location_Y = $postObj->Location_Y;  
-                $stopArray = $this->getStation($Location_X, $Location_Y);
+                $Location_Y = $postObj->Location_Y;
+
+                $stops = new mbtaSubwayStop;
+
+                $stopArray = $stops->getStops($Location_X, $Location_Y);
                 $stopNumber = count($stopArray);
 
                 if ($stopNumber == 1) {
                     $contentStr = "Sorry, there is no subway station around...";
-                    $msgType = "text";
-                    $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $contentStr);
-                    echo $resultStr;  
+                    setPlantTextResponse($fromUsername, $toUsername, $time, $contentStr);
                 } else {
                     
                     setRichMediaResponse($fromUsername, $toUsername, $time, $stopArray);
@@ -76,7 +76,24 @@ class Callback
         }
     }
 
-    function getStation($location_x, $location_y) {
+
+
+    // help
+    private function getHelp() {
+        $help = "1. For nearby subway stops, share your current location with me.\n2. Sent 'weather' to get Boston weather condition.\n3. Other info is coming soon...";
+        return $help;
+    }
+}  // callback end
+
+// mbta
+class mbtaSubwayStop
+{
+    public function getStops($location_x, $location_y) {
+        $array = $this->getStation($location_x, $location_y);
+        return $array;
+    }
+    
+    private function getStation($location_x, $location_y) {
         $url = "http://mbta-api.heroku.com/mapper/find_closest_stations.json?lat=".$location_x."&lon=".$location_y;
         $file = file_get_contents($url);
         $obj = json_decode($file);
@@ -103,13 +120,7 @@ class Callback
     
         return $pair;
     }
-
-    // help
-    function getHelp() {
-        $help = "1. For nearby subway stops, share your current location with me.\n2. Other info is coming soon...";
-        return $help;
-    }
-}  // mbta callback end
+}
 
 // a class for weather condition
 class weatherCondition  // only return the weather condition for Boston
@@ -162,11 +173,11 @@ class weatherCondition  // only return the weather condition for Boston
         $forecast = $yw_forecast["forecast"];
         $today = $forecast[date("D")];
         $tomorrow = $forecast[date("D",mktime()+86400)];
-        $code = $condition["code"][0];
+        $code = sprintf("%d", $condition["code"][0]);
 
         $conditionImg = $this->getFromConditionCode($code);
         $picUrl = "http://changecong.com/wechat/hiboston/img/weather/".$conditionImg.".jpg";
-
+        // $picUrl = "http://changecong.com/wechat/hiboston/img/weather/".$code.".jpg";
         $array = array(
             array("title"=>$location["city"][0].", ".$location["region"][0].", ".$location["country"][0], "pic"=>$picUrl, "url"=>$picUrl),
             array("title"=>"Current condition:\n".$condition["text"][0]." ".$condition["temp"][0]."F"),
@@ -186,7 +197,7 @@ class weatherCondition  // only return the weather condition for Boston
 }
 
 // utilities
-function setRichMediaResponse($fromUsername, $toUsername, $createTime, $constent)
+function setRichMediaResponse($fromUsername, $toUsername, $createTime, $content)
 {
     $textHeaderTpl = "<xml>
                               <ToUserName><![CDATA[%s]]></ToUserName>
@@ -205,9 +216,9 @@ function setRichMediaResponse($fromUsername, $toUsername, $createTime, $constent
                               <FuncFlag>1</FuncFlag>
                               </xml> ";
 
-    $headerStr = sprintf($textHeaderTpl, $fromUsername, $toUsername, $createTime, count($constent));
+    $headerStr = sprintf($textHeaderTpl, $fromUsername, $toUsername, $createTime, count($content));
 		
-    foreach($constent as $key=>$value) {
+    foreach($content as $key=>$value) {
         $contentStr .= sprintf($textContentTpl, $value["title"], $value["desc"], $value["pic"], $value["url"]);
     }			     
 
@@ -216,7 +227,7 @@ function setRichMediaResponse($fromUsername, $toUsername, $createTime, $constent
     echo $resultStr = $headerStr,$contentStr,$footerStr;                
 }
 
-function setPlantTextResponse($fromUsername, $toUsername, $createTime, $constent)
+function setPlantTextResponse($fromUsername, $toUsername, $createTime, $content)
 {
     // text
     $textTpl = "<xml>
@@ -228,7 +239,7 @@ function setPlantTextResponse($fromUsername, $toUsername, $createTime, $constent
                             <FuncFlag>0</FuncFlag>
                             </xml>";   
 
-    $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $createTime, $contentStr);
+    $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $createTime, $content);
     
     echo $resultStr; 
 }
