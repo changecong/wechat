@@ -27,8 +27,9 @@ class mbtaSubwayStop
             $station = $unit->station;
             $color = $station->line;
             $stopName = $station->stop_name;
-            if($station->distance < 0.7 && !in_array($stopName, $stops)) {
-                $pair[] = array("title"=>$stopName, "desc"=>$color, "pic"=>"http://changecong.com/wechat/hiboston/img/".$color.".jpg", "url"=>$mbtaurl);
+            $distance = number_format($station->distance, 1);
+            if($distance < 0.7 && !in_array($stopName, $stops)) {
+                $pair[] = array("title"=>$stopName." (".$distance." mile)", "desc"=>$color, "pic"=>"http://changecong.com/wechat/hiboston/img/".$color.".jpg", "url"=>$mbtaurl);
                 $stops[] = $stopName;
             }
 

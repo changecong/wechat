@@ -30,9 +30,10 @@ function setRichMediaResponse($fromUsername, $toUsername, $createTime, $content)
                               </xml> ";
 
     $headerStr = sprintf($textHeaderTpl, $fromUsername, $toUsername, $createTime, count($content));
-		
+
+    $url = appSite();
     foreach($content as $key=>$value) {
-        $contentStr .= sprintf($textContentTpl, $value["title"], $value["desc"], $value["pic"], $value["url"]);
+        $contentStr .= sprintf($textContentTpl, $value["title"], $value["desc"], $value["pic"], $url);
     }			     
 
     $footerStr = sprintf($textFooterTpl);
@@ -64,6 +65,10 @@ function splitStringToTwo($str)
   return $strs;
 }
 
-
-
+// 
+function appSite()
+{
+  $url = "http://goo.gl/c0vNk";  // short url
+  return $url;
+}
 ?>
