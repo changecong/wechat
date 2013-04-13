@@ -49,8 +49,8 @@ class Callback
                     $keywords = splitStringToTwo($keyword);
               
                     if (count($keywords) > 2) {
-                        $contentStr = "Wrong Format!\n[category]: [keywords]\nor\n[category]\ni.e.weather\nor\nweather: Boston";
-                        setPlainTextResponse($fromUsername, $toUsername, $time, $contentStr);
+                        $contentStr = $this->getHelp();
+                        setRichMediaResponse($fromUsername, $toUsername, $time, $contentStr);
                         exit;
                     } else if (count($keywords) == 1) { // [category]
 
@@ -60,12 +60,15 @@ class Callback
                         // weather
                         if (strtolower($param) == "weather") {
                             $weather = new weatherCondition();
-                            $contentStr = $weather->getWeather();
-                    
+                            $contentStr = $weather->getWeather("");
+                                               
                             setRichMediaResponse($fromUsername, $toUsername, $time, $contentStr);
-                    
-                        } else {
+                            
+                        } else if (strtolower($param) == "help"){
                             $contentStr = $this->getHelp();
+                            setRichMediaResponse($fromUsername, $toUsername, $time, $contentStr);
+                        }else {
+                            $contentStr = "Uncorrect syntax, sent 'help' for how to use.";
                             setPlainTextResponse($fromUsername, $toUsername, $time, $contentStr);
                         }
 
@@ -79,11 +82,15 @@ class Callback
                         if (strtolower($param[0]) == "weather") {
                             $weather = new weatherCondition();
                             $contentStr = $weather->getWeather($param[1]);
-                    
-                            setRichMediaResponse($fromUsername, $toUsername, $time, $contentStr);
+                            if ( $contentStr == "error" ) {
+                                $contentStr = "No valid data, please check your city's name.";
+                                setPlainTextResponse($fromUsername, $toUsername, $time, $contentStr);
+                            } else {
+                                setRichMediaResponse($fromUsername, $toUsername, $time, $contentStr);
+                            }
                         } else {
                             $contentStr = $this->getHelp();
-                            setPlainTextResponse($fromUsername, $toUsername, $time, $contentStr);
+                            setRichMediaResponse($fromUsername, $toUsername, $time, $contentStr);
                         }                
                     }                 
                 } 
@@ -118,7 +125,16 @@ class Callback
 
     // help
     private function getHelp() {
-        $help = "1. For nearby subway stops, share your current location with me.\n2. Sent 'weather' to get Boston weather condition.\n3. Other info is coming soon...";
+        $help = array(
+            array("title"=>"How To Use"),
+            array("title"=>"Share your location to get info about nearby subway stops (Orange, Red, Blue line spported).", "desc"=>"help:subway", "pic"=>"http://changecong.com/wechat/hiboston/img/help/location.jpg"),
+            array("title"=>"Message syntax:\n[category]\ni.e 'weather' (default is Boston)"),
+            array("title"=>"Message syntax:\n[category]:[keywords]\ni.e 'weather:New York'\n    'weather: Xian China'\n"),
+            array("title"=>"Currently spported categories:\n'weather'"),
+            array("title"=>"Click here to help site", "url"=>""),
+            );
+
+        // @todo add help site.
         return $help;
     }
 }  // callback end

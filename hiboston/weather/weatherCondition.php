@@ -13,8 +13,14 @@ class weatherCondition  // only return the weather condition for Boston
         } else {
             $geoObj = new geoUtilities();
             $WOEID = $geoObj->getWoeidFromName($location);
+        } 
+
+        if(empty($WOEID)) {
+            $array = "error";
+        } else {
+            $array = $this->decodeYahooAPI($WOEID);
         }
-        $array = $this->decodeYahooAPI($WOEID);
+
         return $array;
     }
 
@@ -68,7 +74,7 @@ class weatherCondition  // only return the weather condition for Boston
         // $picUrl = "http://changecong.com/wechat/hiboston/img/weather/".$code.".jpg";
         $array = array(
             array("title"=>$location["city"][0].", ".$location["region"][0].", ".$location["country"][0], "pic"=>$picUrl, "url"=>$picUrl),
-            array("title"=>"Current condition:\n".$condition["text"][0]." ".$condition["temp"][0]."F"),
+            array("title"=>"Current Condition:\n".$condition["text"][0]." ".$condition["temp"][0]."F"),
             array("title"=>"Today: ".$today["text"][0]."\nhigh: ".$today["high"][0]."F low: ".$today["low"][0]."F"),
             array("title"=>"Tomorrow: ".$tomorrow["text"][0]."\nhigh: ".$tomorrow["high"][0]."F low: ".$tomorrow["low"][0]."F")
             );
