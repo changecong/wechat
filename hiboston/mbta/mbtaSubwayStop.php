@@ -41,23 +41,26 @@ class mbtaSubwayStop
             }
         }
        
-        // assume only have a transport station for two lines
-        $stopCurrent = current($stops);
-        $stopEnd = end($stops);
-        reset($stops);
+
+        // assume 2 stations
         $newStops = array();
-        while ($stopCurrent != $stopEnd) {
-            $stopCurrent = current($stops);
-            $stopNext = next($stops);
-            if($stopCurrent["name"] == $stopNext["name"]) {
-                $newStops[] = array("name"=>$stopCurrent["name"], "color"=>$stopCurrent["color"].$stopNext["color"]);
-                // skip the next
-                next($stops);
-            } else {
-                $newStops[] = array("name"=>$stopCurrent["name"], "color"=>$stopCurrent["color"]);
+        $temp = current($stops);
+        $end = end($stops);
+        reset($stops);
+        while($temp != $end && !is_null($temp)) {
+            $next = next($stops);  // get the next
+            if($temp["name"] == $next["name"]) {  // same with the next
+                $newStops[] = array("name"=>$temp["name"], "color"=>$temp["color"].$next["color"]);
+                // new temp, skip the next
+                $temp = next($stops);
+            } else { // different with the next
+                $newStops[] = array("name"=>$temp["name"], "color"=>$temp["color"]);
+                $temp = current($stops);
+            }
+            if($temp == $end) {
+                $newStops[] = array("name"=>$temp["name"], "color"=>$temp["color"]);
             }
         }
-
 
         foreach($newStops as $item) {
                     
