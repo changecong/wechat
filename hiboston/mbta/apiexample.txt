@@ -1,0 +1,72 @@
+[
+        {
+        "station":
+                {
+                "start_of_line":"FALSE",
+                "created_at":"2011-04-14T17:58:27Z",
+                "platform_key":"OOAKN",
+                "stop_code":"",
+                "line":"Orange",
+                "stop_lat":42.43668,
+                "platform_name":"OAK GROVE NB",
+                "stop_lon":-71.071097,
+                "updated_at":"2011-04-14T17:58:27Z",
+                "branch":"Trunk",
+                "end_of_line":"TRUE",
+                "platform_order":18,
+                "station_name":"OAK GROVE",
+                "stop_id":"place-ogmnl",
+                "id":748709359,
+                "stop_desc":"",
+                "direction":"NB",
+                "distance":"4.04273628252072",
+                "stop_name":"Oak Grove Station"
+                }
+        },
+        {
+        "station":
+                {
+                "start_of_line":"FALSE",
+                "created_at":"2011-04-14T17:58:27Z",
+                "platform_key":"OMALN",
+                "stop_code":"",
+                "line":"Orange",
+                "stop_lat":42.426632,
+                "platform_name":"MALDEN NB",
+                "stop_lon":-71.07411,
+                "updated_at":"2011-04-14T17:58:27Z",
+                "branch":"Trunk",
+                "end_of_line":"FALSE",
+                "platform_order":17,
+                "station_name":"MALDEN",
+                "stop_id":"place-mlmnl",
+                "id":463951230,
+                "stop_desc":"",
+                "direction":"NB",
+                "distance":"4.75420015397666",
+                "stop_name":"Malden Center Station"}
+                },
+        {
+        "station":
+                {
+                "start_of_line":"TRUE",
+                "created_at":"2011-04-14T17:58:27Z",
+                "platform_key":"OMALS",
+                "stop_code":"",
+                "line":"Orange",
+                "stop_lat":42.426632,
+                "platform_name":"MALDEN SB",
+                "stop_lon":-71.07411,
+                "updated_at":"2011-04-14T17:58:27Z",
+                "branch":"Trunk",
+                "end_of_line":"FALSE",
+                "platform_order":1,
+                "station_name":"MALDEN",
+                "stop_id":"place-mlmnl",
+                "id":96714969,
+                "stop_desc":"",
+                "direction":"SB",
+                "distance":"4.75420015397666",
+                "stop_name":"Malden Center Station"
+                }
+        }

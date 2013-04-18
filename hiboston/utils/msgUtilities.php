@@ -29,7 +29,12 @@ function setRichMediaResponse($fromUsername, $toUsername, $createTime, $content)
                               <FuncFlag>1</FuncFlag>
                               </xml> ";
 
-    $headerStr = sprintf($textHeaderTpl, $fromUsername, $toUsername, $createTime, count($content));
+    if (count($content) > 10) {
+        $count = 10;
+    } else {
+        $count = count($content);
+    }
+    $headerStr = sprintf($textHeaderTpl, $fromUsername, $toUsername, $createTime, $count);
 		
     foreach($content as $key=>$value) {
         $contentStr .= sprintf($textContentTpl, $value["title"], $value["desc"], $value["pic"], $value["url"]);
