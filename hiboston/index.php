@@ -127,11 +127,11 @@ class Callback
     private function getHelp() {
         $help = array(
             array("title"=>"How To Use"),
-            array("title"=>"Share your location to get info about nearby subway stops (Orange, Red, Blue line spported).", "desc"=>"help:subway", "pic"=>"http://changecong.com/wechat/hiboston/img/help/location.jpg"),
+            array("title"=>"Share your location to get info about nearby subway stops (Orange, Red, Blue line spported).", "desc"=>"help:subway", "pic"=>"http://changecong.com/wechat/hiboston/img/help/location.png"),
             array("title"=>"Message syntax:\n[category]\ni.e 'weather' (default is Boston)"),
             array("title"=>"Message syntax:\n[category]:[keywords]\ni.e 'weather:New York'\n    'weather: Xian China'\n"),
             array("title"=>"Currently spported categories:\n'weather'"),
-            array("title"=>"Click here to help site", "url"=>""),
+            array("title"=>"Click here to help site", "pic"=>"http://changecong.com/wechat/hiboston/img/help/website.png"),
             );
 
         // @todo add help site.

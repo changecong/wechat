@@ -20,11 +20,20 @@ class mbtaSubwayStop
         $mbtaurl = "http://mobile.usablenet.com/mt/www.mbta.com/?un_jtt_v_schedule_choice=subway";
         // decode
         $pair = array();
-        $pair[] = array("title"=>"MBTA subway stops nearby", "pic"=>"http://changecong.com/wechat/hiboston/img/mbta/mbta.jpg");
+        $pair[] = array("title"=>"MBTA subway stops nearby", "pic"=>"http://changecong.com/wechat/hiboston/img/mbta.jpg");
         $stops = array();  // "name"=>"", "color"=>""
         $lines = array();
 
         foreach($obj as $unit) {
+
+            $station = $unit->station;
+            $color = $station->line;
+            $stopName = $station->stop_name;
+            $distance = number_format($station->distance, 1);
+            if($distance < 0.7 && !in_array($stopName, $stops)) {
+                $pair[] = array("title"=>$stopName." (".$distance." mile)", "desc"=>$color, "pic"=>"http://changecong.com/wechat/hiboston/img/".$color.".jpg", "url"=>$mbtaurl);
+                $stops[] = $stopName;
+
             $station = $unit->station;  // get station
 
             $color = $station->line;  // get the line color
@@ -59,12 +68,13 @@ class mbtaSubwayStop
             }
             if($temp == $end) {
                 $newStops[] = array("name"=>$temp["name"], "color"=>$temp["color"]);
+>>>>>>> 2ce49ad940be502c19443bff6460cf56364f1786
             }
         }
 
         foreach($newStops as $item) {
                     
-            $pair[] = array("title"=>$item["name"], "desc"=>$itme["color"], "pic"=>"http://changecong.com/wechat/hiboston/img/mbta/".$item["color"].".png", "url"=>$mbtaurl);
+            $pair[] = array("title"=>$item["name"], "desc"=>$itme["color"], "pic"=>"http://changecong.com/wechat/hiboston/img/".$item["color"].".jpg", "url"=>$mbtaurl);
         }
     
         return $pair;
