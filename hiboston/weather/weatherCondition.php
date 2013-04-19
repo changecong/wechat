@@ -73,7 +73,11 @@ class weatherCondition  // only return the weather condition for Boston
         $picUrl = "http://changecong.com/wechat/hiboston/img/weather/".$conditionImg.".jpg";
         // $picUrl = "http://changecong.com/wechat/hiboston/img/weather/".$code.".jpg";
         $array = array(
+<<<<<<< HEAD
             array("title"=>$location["city"][0].", ".$location["region"][0].", ".$location["country"][0], "pic"=>$picUrl),
+=======
+            array("title"=>$location["city"][0].", ".$location["region"][0].", ".$location["country"][0], "pic"=>$picUrl, "url"=>$picUrl),
+>>>>>>> 2ce49ad940be502c19443bff6460cf56364f1786
             array("title"=>"Current Condition:\n".$condition["text"][0]." ".$condition["temp"][0]."F"),
             array("title"=>"Today: ".$today["text"][0]."\nhigh: ".$today["high"][0]."F low: ".$today["low"][0]."F"),
             array("title"=>"Tomorrow: ".$tomorrow["text"][0]."\nhigh: ".$tomorrow["high"][0]."F low: ".$tomorrow["low"][0]."F")
