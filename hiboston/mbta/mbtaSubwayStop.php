@@ -19,8 +19,11 @@ class mbtaSubwayStop
 
         $mbtaurl = "http://mobile.usablenet.com/mt/www.mbta.com/?un_jtt_v_schedule_choice=subway";
         // decode
+
+        $distance =  $this->regionDecide($location_x, $location_y);
+
         $pair = array();
-        $pair[] = array("title"=>"MBTA subway stops nearby", "pic"=>"http://changecong.com/wechat/hiboston/img/mbta/mbta.jpg");
+        $pair[] = array("title"=>"MBTA subway stops within ".$distance." mile", "pic"=>"http://changecong.com/wechat/hiboston/img/mbta/mbta.jpg");
         $stops = array();  // "name"=>"", "color"=>""
         $lines = array();
 
@@ -28,13 +31,12 @@ class mbtaSubwayStop
             $station = $unit->station;  // get station
 
             $color = $station->line;  // get the line color
-            $stopName = $station->stop_name;  // get the stop's name
-    
+            $stopName = $station->stop_name;  // get the stop's name   
            
 
             // if the stop is within 0.7 miles
             // and the combination of stopname and line number have appearred
-            if($station->distance < 0.7 && 
+            if($station->distance < $distance && 
                !in_array(array("name"=>$stopName, "color"=>$color), $stops)) {
                     
                 $stops[] = array("name"=>$stopName, "color"=>$color);  // store it      
@@ -75,6 +77,23 @@ class mbtaSubwayStop
      */
     private function drawDirectionPic() {
 
+    }
+
+    /*
+     * @brief a function used to decide where the location is, and the range of subway search
+     */
+    private function regionDecide($x, $y) {
+      // Boston Downtown
+      // draw and
+      $distance = 0.0;
+      if($x > 42.347920 && $y > -71.071636 && 
+         $x < 42.367423 && $y < -71.051001) {
+        $distance = 0.4;
+      } else {
+        $distance = 0.7;
+      }
+
+      return $distance;
     }
 }  // end class
 

@@ -71,12 +71,12 @@ class weatherCondition  // only return the weather condition for Boston
 
         $conditionImg = $this->getFromConditionCode($code);
         $picUrl = "http://changecong.com/wechat/hiboston/img/weather/".$conditionImg.".jpg";
-        // $picUrl = "http://changecong.com/wechat/hiboston/img/weather/".$code.".jpg";
+        // $picUrl = "http://changecong.com/wechat/hiboston/img/weather/small/".$code.".png";
         $array = array(
             array("title"=>$location["city"][0].", ".$location["region"][0].", ".$location["country"][0], "pic"=>$picUrl),
-            array("title"=>"Current Condition:\n".$condition["text"][0]." ".$condition["temp"][0]."F"),
-            array("title"=>"Today: ".$today["text"][0]."\nhigh: ".$today["high"][0]."F low: ".$today["low"][0]."F"),
-            array("title"=>"Tomorrow: ".$tomorrow["text"][0]."\nhigh: ".$tomorrow["high"][0]."F low: ".$tomorrow["low"][0]."F")
+            array("title"=>"Current Condition:\n".$condition["text"][0]." ".$condition["temp"][0]."°F", "pic"=>"http://changecong.com/wechat/hiboston/img/weather/small/".$condition["code"][0].".png"),
+            array("title"=>"Today: ".$today["text"][0]."\nhigh: ".$today["high"][0]."°F low: ".$today["low"][0]."°F", "pic"=>"http://changecong.com/wechat/hiboston/img/weather/small/".$today["code"][0].".png"),
+            array("title"=>"Tomorrow: ".$tomorrow["text"][0]."\nhigh: ".$tomorrow["high"][0]."°F low: ".$tomorrow["low"][0]."°F", "pic"=>"http://changecong.com/wechat/hiboston/img/weather/small/".$tomorrow["code"][0].".png")
             );
 
         return $array;

@@ -58,17 +58,17 @@ class Callback
                         $param = trim($keywords[0]);
 
                         // weather
-                        if (strtolower($param) == "weather") {
+                        if (strtolower($param) == "weather" || strtolower($param) == "w") {
                             $weather = new weatherCondition();
                             $contentStr = $weather->getWeather("");
                                                
                             setRichMediaResponse($fromUsername, $toUsername, $time, $contentStr);
                             
-                        } else if (strtolower($param) == "help"){
+                        } else if (strtolower($param) == "help" || strtolower($param) == "h"){
                             $contentStr = $this->getHelp();
                             setRichMediaResponse($fromUsername, $toUsername, $time, $contentStr);
                         }else {
-                            $contentStr = "Uncorrect syntax, sent 'help' for how to use.";
+                            $contentStr = "Uncorrect syntax, sent 'help' or 'h' for how to use.";
                             setPlainTextResponse($fromUsername, $toUsername, $time, $contentStr);
                         }
 
@@ -79,7 +79,7 @@ class Callback
                         $param[] = trim($keywords[1], " ");
             
                         // weather
-                        if (strtolower($param[0]) == "weather") {
+                        if (strtolower($param[0]) == "weather" || strtolower($param[0]) == "w") {
                             $weather = new weatherCondition();
                             $contentStr = $weather->getWeather($param[1]);
                             if ( $contentStr == "error" ) {
@@ -105,7 +105,7 @@ class Callback
                 $stopNumber = count($stopArray);
 
                 if ($stopNumber == 1) {
-                    $contentStr = "Sorry, there is no subway station around...";
+                    $contentStr = "Sorry, there is no subway station nearby...\nOnly 'Orange', 'Blue, 'Red' lines supported.";
                     setPlainTextResponse($fromUsername, $toUsername, $time, $contentStr);
                 } else {
                     
@@ -126,11 +126,10 @@ class Callback
     // help
     private function getHelp() {
         $help = array(
-            array("title"=>"How To Use"),
-            array("title"=>"Share your location to get info about nearby subway stops (Orange, Red, Blue line spported).", "desc"=>"help:subway", "pic"=>"http://changecong.com/wechat/hiboston/img/help/location.png"),
-            array("title"=>"Message syntax:\n[category]\ni.e 'weather' (default is Boston)"),
-            array("title"=>"Message syntax:\n[category]:[keywords]\ni.e 'weather:New York'\n    'weather: Xian China'\n"),
-            array("title"=>"Currently spported categories:\n'weather'"),
+                      array("title"=>"How To Use", "pic"=>"http://changecong.com/wechat/hiboston/img/help/help.jpg"),
+            array("title"=>"Share your location to find nearby subway stops (Orange, Red, Blue line spported).", "desc"=>"help:subway", "pic"=>"http://changecong.com/wechat/hiboston/img/help/location.png"),
+            array("title"=>"Use 'weather' or 'w' for weather condition:\n'weather' (Boston default)\n'weather':[city name]\n'w:[city name]'"),
+            array("title"=>"Case/Space insensitive:\n'weather:NeW york'\n'W: Xian China'\nFor more accurate result, specify state and country, like:\nRochester, NY\nRochester, MN"),
             array("title"=>"Click here to help site", "pic"=>"http://changecong.com/wechat/hiboston/img/help/website.png"),
             );
 
